@@ -1,3 +1,73 @@
-The Second question is provided in this repository.
 
-// by nitin
+    public static int get_ans(int n, int m, String l, String r) {
+        long right = count(r);
+        String lMinus1 = minusOne(l);
+        long left = l.equals("0") ? 0 : count(lMinus1);
+
+        return (int)((right - left + MOD) % MOD);
+    }
+    
+    static final int MOD = 1_000_000_007;
+
+    static int[] digitMask = new int[10];
+
+    static {
+        for (int d = 1; d <= 9; d++) {
+            int x = d;
+            int mask = 0;
+
+            int count = 0;
+            while (x % 2 == 0) { x /= 2; count++; }
+            if (count % 2 == 1) mask ^= (1 << 0);
+
+            count = 0;
+            while (x % 3 == 0) { x /= 3; count++; }
+            if (count % 2 == 1) mask ^= (1 << 1);
+
+            count = 0;
+            while (x % 5 == 0) { x /= 5; count++; }
+            if (count % 2 == 1) mask ^= (1 << 2);
+
+            count = 0;
+            while (x % 7 == 0) { x /= 7; count++; }
+            if (count % 2 == 1) mask ^= (1 << 3);
+
+            digitMask[d] = mask;
+        }
+        digitMask[0] = 0;
+    }
+
+    static Long[][][][] dp;
+
+    static long solve(String s, int pos, int tight, int mask, int started) {
+        if (pos == s.length()) {
+            return (mask == 0 && started == 1) ? 1 : 0;
+        }
+
+        if (dp[pos][tight][mask][started] != null)
+            return dp[pos][tight][mask][started];
+
+        int limit = (tight == 1) ? s.charAt(pos) - '0' : 9;
+
+        long res = 0;
+
+        for (int d = 0; d <= limit; d++) {
+            int newTight = (tight == 1 && d == limit) ? 1 : 0;
+            int newStarted = (started == 1 || d != 0) ? 1 : 0;
+
+            int newMask = mask;
+            if (d != 0) {
+                newMask ^= digitMask[d];
+            }
+
+            res = (res + solve(s, pos + 1, newTight, newMask, newStarted)) % MOD;
+        }
+
+        return dp[pos][tight][mask][started] = res;
+    }
+
+    static long count(String s) {
+        int n = s.length();
+        dp = new Long[n][2][16][2];
+        return solve(s, 0, 1, 0, 0);
+    }
